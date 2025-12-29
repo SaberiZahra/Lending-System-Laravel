@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,6 +23,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
       </Link>
     );
   };
+  
 
   return (
     <div className="min-h-screen bg-blue-50 relative">

@@ -1,50 +1,31 @@
-import Link from 'next/link';
-import { UserIcon , MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import AppLogo from '@/app/ui/acme-logo';
+import { ReactNode } from "react";
+import Link from "next/link";
+import { UserIcon } from "@heroicons/react/24/outline";
 
-
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function ProfileLayout({ children }: { children: ReactNode }) {
   return (
-    <main>
-    <div className="h-screen grid grid-cols-3 shrink-0 items-center rounded-lg bg-blue-500 p-4 md:h-52">
-        <div className="flex flex-row justify-start">
-            <Link
-            href="/dashboard/users/profile"
-            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-          >
-            <span>پروفایل</span> <UserIcon className="w-5 md:w-6" />
-          </Link>
+    <div className="min-h-screen bg-blue-50">
+      {/* Top Banner */}
+      <div className="w-full bg-blue-100 p-6 md:p-10 rounded-b-2xl shadow-md mb-8 flex items-center justify-between">
+        {/* سمت چپ: لوگو و نام سایت */}
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+            LOGO
           </div>
-         
-        <div className="flex flex-row justify-center">
-          <input 
-            type='text'
-            placeholder='جستجو...'
-            className='border border-gray-300 rounded-lg px-4 py-2 w-80'> 
-          </input>
-          <Link
-            /* this link should fix*/
-            href="/login"
-            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-          >
-            <span>جستجو</span> <MagnifyingGlassIcon className="w-5 md:w-6" />
-          </Link>  
-        </div>    
+          <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800">
+            نام سایت شما
+          </h1>
+        </div>
 
-        <Link
-        className="mb-2 flex h-20 items-end justify-end rounded-md bg-blue-500 p-4 md:h-40"
-        href="/"
-        >
-            <div className="w-32 text-white md:w-40">
-                <AppLogo />
-            </div>
-        </Link>  
         
-
       </div>
-      
-        <div>{children}</div>
-         
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="bg-white shadow-lg rounded-2xl p-6 md:p-10">
+          {children}
+        </div>
       </main>
+    </div>
   );
 }

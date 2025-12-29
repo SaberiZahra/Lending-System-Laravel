@@ -1,8 +1,8 @@
 export default function MessagesPage() {
   return (
-    <div className="h-[calc(100vh-3rem)] bg-white rounded-2xl shadow overflow-hidden flex">
+    <div className="h-[calc(100vh-3rem)] bg-blue-50 rounded-2xl shadow overflow-hidden flex">
       {/* Conversations List */}
-      <aside className="w-80 border-l border-slate-200 overflow-y-auto">
+      <aside className="w-80 border-l border-slate-200 overflow-y-auto bg-white">
         <ConversationItem
           name="محمد رضایی"
           lastMessage="سلام، برای اجاره دوربین پیام دادم"
@@ -24,15 +24,13 @@ export default function MessagesPage() {
       {/* Chat Area */}
       <section className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b border-slate-200 p-4">
-          <h2 className="font-semibold">محمد رضایی</h2>
-          <p className="text-xs text-slate-500">
-            آنلاین
-          </p>
+        <header className="border-b border-slate-200 p-4 bg-white shadow-sm">
+          <h2 className="font-semibold text-gray-800">محمد رضایی</h2>
+          <p className="text-xs text-gray-500">آنلاین</p>
         </header>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-blue-50">
           <MessageBubble
             text="سلام، دوربین هنوز موجوده؟"
             isOwn={false}
@@ -51,13 +49,13 @@ export default function MessagesPage() {
         </div>
 
         {/* Input */}
-        <footer className="border-t border-slate-200 p-4">
+        <footer className="border-t border-slate-200 p-4 bg-white">
           <div className="flex gap-2">
             <input
               placeholder="پیام خود را بنویسید..."
-              className="flex-1 border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="flex-1 border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-            <button className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
+            <button className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition">
               ارسال
             </button>
           </div>
@@ -84,16 +82,14 @@ function ConversationItem({
 }) {
   return (
     <div
-      className={`p-4 cursor-pointer border-b border-slate-100 hover:bg-slate-50
-      ${unread ? "bg-slate-100" : ""}`}
+      className={`p-4 cursor-pointer border-b border-slate-100 hover:bg-blue-50
+        ${unread ? "bg-blue-100" : ""}`}
     >
       <div className="flex justify-between items-center">
-        <p className="font-medium">{name}</p>
-        <span className="text-xs text-slate-400">{time}</span>
+        <p className="font-medium text-gray-800">{name}</p>
+        <span className="text-xs text-gray-400">{time}</span>
       </div>
-      <p className="text-sm text-slate-500 truncate mt-1">
-        {lastMessage}
-      </p>
+      <p className="text-sm text-gray-500 truncate mt-1">{lastMessage}</p>
     </div>
   );
 }
@@ -110,14 +106,16 @@ function MessageBubble({
   return (
     <div
       className={`max-w-xs md:max-w-md px-4 py-2 rounded-2xl text-sm
-      ${isOwn
-        ? "ml-auto bg-slate-900 text-white"
-        : "mr-auto bg-white border"}`}
+        ${isOwn
+          ? "ml-auto bg-blue-600 text-white" // پیام خود کاربر آبی
+          : "mr-auto bg-white border border-gray-200"} // پیام طرف مقابل سفید
+      `}
     >
       <p>{text}</p>
       <span
-        className={`block mt-1 text-xs
-        ${isOwn ? "text-slate-300" : "text-slate-400"}`}
+        className={`block mt-1 text-xs ${
+          isOwn ? "text-blue-200" : "text-gray-400"
+        }`}
       >
         {time}
       </span>
