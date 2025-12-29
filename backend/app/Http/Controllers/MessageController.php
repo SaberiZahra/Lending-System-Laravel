@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Conversation;
 use App\Models\Message;
+use Illuminate\Support\Facades\Auth; //if you want to use auth()->user() instead of  $request->user()
 
 class MessageController extends Controller
 {

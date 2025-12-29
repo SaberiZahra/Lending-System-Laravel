@@ -11,7 +11,7 @@ class UserController extends Controller
         $user = $request->user();
 
         $user->load([
-            'items.listings',
+            'items',
             'loans.listing.item'
         ]);
 
@@ -27,4 +27,18 @@ class UserController extends Controller
             'loans' => $user->loans,
         ]);
     }
+
+    public function update(Request $request)
+    {
+        $user = $request->user();
+        $data = $request->validate([
+            'full_name' => 'sometimes|string|max:150',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'phone' => 'sometimes|string|max:30',
+            'address' => 'sometimes|string',
+        ]);
+        $user->update($data);
+        return response()->json($user);
+    }
+
 }

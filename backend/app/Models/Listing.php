@@ -21,6 +21,12 @@ class Listing extends Model
         'status',
     ];
 
+    protected $casts = [
+        'available_from' => 'date',
+        'available_until' => 'date',
+        'deleted_at' => 'datetime',
+    ];
+
     public function item()
     {
         return $this->belongsTo(Item::class);
@@ -29,5 +35,10 @@ class Listing extends Model
     public function loans()
     {
         return $this->hasMany(Loan::class);
+    }
+
+    public function owner()
+    {
+        return $this->item->owner();
     }
 }

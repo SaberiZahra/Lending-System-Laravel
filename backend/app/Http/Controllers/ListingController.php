@@ -3,52 +3,102 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\Item;
 use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
-    public function index() {
-        return Listing::all();
+    /**
+     * Display listings of the authenticated user's items.
+     */
+    public function index(Request $request)
+    {
+        $listings = $request->user()->items()->with('listings')->get()->pluck('listings')->flatten();
+        return response()->json($listings);
     }
 
+    /**
+     * Store a new listing for an item owned by the user.
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'item_id' => 'required|exists:items,id',
-            'title' => 'required|string|max:200',
-            'description' => 'nullable|string',
-            'daily_fee' => 'required|numeric|min:0',
-            'deposit_amount' => 'required|numeric|min:0',
-            'available_from' => 'required|date',
-            'available_until' => 'required|date|after_or_equal:available_from',
+        $validated = $request->validate([
+            'item_id'          => 'required|exists:items,id',
+            'title'            => 'required|string|max:200',
+            'description'      => 'nullable|string',
+            'daily_fee'        => 'required|numeric|min:0',
+            'deposit_amount'   => 'required|numeric|min:0',
+            'available_from'   => 'required|date',
+            'available_until'  => 'required|date|after_or_equal:available_from',
+            'status'           => 'sometimes|in:active,paused,expired',
         ]);
 
-        $item = Item::findOrFail($request->item_id);
-        if ($item->owner_id !== auth()->id()) {
-            return response()->json(['message'=>'Not allowed'],403);
+        $item = Item::findOrFail($validated['item_id']);
+
+        if ($item->owner_id !== $request->user()->id) {
+            return response()->json(['message' => 'You can only create listings for your own items'], 403);
         }
 
-        $listing = Listing::create($request->only([
-            'item_id','title','description','daily_fee','deposit_amount','available_from','available_until'
-        ]));
+        $listing = $item->listings()->create([
+            'title'           => $validated['title'],
+            'description'     => $validated['description'],
+            'daily_fee'       => $validated['daily_fee'],
+            'deposit_amount'  => $validated['deposit_amount'],
+            'available_from'  => $validated['available_from'],
+            'available_until' => $validated['available_until'],
+            'status'          => $validated['status'] ?? 'active',
+        ]);
 
-        return response()->json($listing, 201);
+        return response()->json($listing->load('item'), 201);
     }
 
+    /**
+     * Display a specific listing (only if item belongs to user).
+     */
+    public function show(Request $request, Listing $listing)
+    {
+        if ($listing->item->owner_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
-    public function show($id) {
-        return Listing::findOrFail($id);
+        return response()->json($listing->load('item'));
     }
 
-    public function update(Request $request, $id) {
-        $listing = Listing::findOrFail($id);
-        $listing->update($request->all());
-        return response()->json($listing);
+    /**
+     * Update the listing.
+     */
+    public function update(Request $request, Listing $listing)
+    {
+        if ($listing->item->owner_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'title'            => 'sometimes|required|string|max:200',
+            'description'      => 'nullable|string',
+            'daily_fee'        => 'sometimes|required|numeric|min:0',
+            'deposit_amount'   => 'sometimes|required|numeric|min:0',
+            'available_from'   => 'sometimes|required|date',
+            'available_until'  => 'sometimes|required|date|after_or_equal:available_from',
+            'status'           => 'sometimes|in:active,paused,expired',
+        ]);
+
+        $listing->update($validated);
+
+        return response()->json($listing->load('item'));
     }
 
-    public function destroy($id) {
-        $listing = Listing::findOrFail($id);
-        $listing->delete(); // SoftDelete
-        return response()->json(['message' => 'Listing deleted']);
+    /**
+     * Soft delete the listing.
+     */
+    public function destroy(Request $request, Listing $listing)
+    {
+        if ($listing->item->owner_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $listing->delete();
+
+        return response()->json(['message' => 'Listing deleted successfully']);
     }
 }

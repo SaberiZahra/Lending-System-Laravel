@@ -21,6 +21,7 @@ class Item extends Model
 
     protected $casts = [
         'images_json' => 'array',
+        'deleted_at' => 'datetime',
     ];
 
     public function owner()

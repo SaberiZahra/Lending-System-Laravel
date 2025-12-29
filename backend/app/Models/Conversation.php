@@ -9,10 +9,6 @@ class Conversation extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'created_at',
-    ];
-
     public function participants()
     {
         return $this->belongsToMany(User::class, 'conversation_participants');
