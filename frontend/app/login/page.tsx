@@ -19,90 +19,93 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-100 flex justify-center items-center h-screen">
-      {/* Left: Image */}
-      <div className="w-1/2 h-screen hidden lg:block">
-        <img
-          src="https://placehold.co/800x/667fff/ffffff.png?text=Your+Image&font=Montserrat"
-          alt="Placeholder Image"
-          className="object-cover w-full h-full"
-        />
-      </div>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-white">
 
-      {/* Right: Login Form */}
-      <div className=" lg:p-36 md:p-52 sm:p-20 p-8 w-full lg:w-1/2">
-        <h1 className="text-2xl font-semibold mb-4 text-right">ورود</h1>
+  {/* Right: Form */}
+  <div className="flex items-center justify-center px-6">
+    <div className="w-full max-w-md">
 
-        <form onSubmit={handleSubmit}>
-          {/* Username */}
-          <div className="mb-4">
-            <label htmlFor="username" className="block text-gray-600 text-right">
-              نام کاربری
-            </label>
-            <input
-              type="text"
-              id="username"
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 text-right"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
+      <h1 className="text-3xl font-bold text-right mb-8 text-gray-800">
+        ورود به حساب کاربری
+      </h1>
 
-          {/* Password */}
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-gray-600 text-right">
-              رمزعبور
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 text-right"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-          {/* Remember Me */}
-          <div className="mb-4 flex items-center justify-end">
-            <label htmlFor="remember" className="text-gray-600 ml-2 text-right">
-              من را به خاطر داشته باش
-            </label>
-            <input
-              type="checkbox"
-              id="remember"
-              className="text-blue-500"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-            />
-            
-          </div>
-
-          {/* Forgot Password */}
-          <div className="flex justify-end mb-6 text-blue-500">
-            <a href="#" className="hover:underline text-right">
-              فراموشی رمز
-            </a>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full"
-          >
-            ورود
-          </button>
-        </form>
-
-        {/* Sign up */}
-        <div className="mt-6 text-blue-500 text-center">
-          <a href="/signUp" className="hover:underline">
-            ثبت نام
-          </a>
+        {/* Username */}
+        <div>
+          <label className="block text-sm text-gray-600 text-right mb-1">
+            نام کاربری
+          </label>
+          <input
+            type="text"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-right
+                       focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
         </div>
-      </div>
+
+        {/* Password */}
+        <div>
+          <label className="block text-sm text-gray-600 text-right mb-1">
+            رمز عبور
+          </label>
+          <input
+            type="password"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-right
+                       focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {/* Remember */}
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <a href="#" className="text-blue-600 hover:underline">
+            فراموشی رمز؟
+          </a>
+
+          <label className="flex items-center gap-2">
+            <span>مرا به خاطر بسپار</span>
+            <input type="checkbox" />
+          </label>
+        </div>
+
+        {/* Button */}
+        <button
+          type="submit"
+          className="mt-4 w-full rounded-lg bg-blue-50 py-2
+                     font-semibold text-blue-700
+                     hover:bg-blue-600 hover:text-white
+                     transition-all duration-300"
+        >
+          ورود
+        </button>
+      </form>
+
+      {/* Signup */}
+      <p className="mt-6 text-center text-sm text-gray-600">
+        حساب کاربری ندارید؟
+        <a href="/signUp" className="text-blue-600 font-medium mr-1 hover:underline">
+          ثبت نام
+        </a>
+      </p>
     </div>
+  </div>
+
+  {/* Left: Image */}
+  <div
+  className="hidden lg:block bg-blue-50 bg-no-repeat bg-center bg-cover"
+  style={{
+    backgroundImage:
+      "url('https://img.freepik.com/free-vector/access-control-system-abstract-concept_335657-3180.jpg?semt=ais_hybrid&w=740&q=80')",
+  }}
+/>
+
+
+</div>
+
+
   );
 };
 

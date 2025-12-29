@@ -1,83 +1,112 @@
 "use client";
 
 import { useState } from "react";
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  EnvelopeIcon,
-  LockClosedIcon,
-  UserIcon
-} from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
-export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false);
+const SignupPage: React.FC = () => {
+  const [fullname, setFullname] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    console.log({
+      fullname,
+      email,
+      password,
+    });
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Card className="w-full max-w-md shadow-xl rounded-2xl">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl font-bold">ایجاد حساب کاربری</CardTitle>
-          <CardDescription>
-            برای ادامه، اطلاعات خود را وارد کنید
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-white">
 
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <UserIcon className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
-            <Input
-              dir="rtl"
-              placeholder="نام و نام خانوادگی"
-              className="pr-10"
-            />
-          </div>
+      {/* Right: Form */}
+      <div className="flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
 
-          <div className="relative">
-            <EnvelopeIcon className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
-            <Input
-              dir="rtl"
-              type="email"
-              placeholder="ایمیل"
-              className="pr-10"
-            />
-          </div>
+          <h1 className="text-3xl font-bold text-right mb-8 text-gray-800">
+            ایجاد حساب کاربری
+          </h1>
 
-          <div className="relative">
-            <LockClosedIcon className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
-            <Input
-              dir="rtl"
-              type={showPassword ? "text" : "password"}
-              placeholder="رمز عبور"
-              className="pr-10 pl-10"
-            />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+            {/* Full name */}
+            <div>
+              <label className="block text-sm text-gray-600 text-right mb-1">
+                نام و نام خانوادگی
+              </label>
+              <input
+                type="text"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-right
+                           focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm text-gray-600 text-right mb-1">
+                ایمیل
+              </label>
+              <input
+                type="email"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-right
+                           focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm text-gray-600 text-right mb-1">
+                رمز عبور
+              </label>
+              <input
+                type="password"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-right
+                           focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            {/* Button */}
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute left-3 top-3 text-muted-foreground"
+              type="submit"
+              className="mt-4 w-full rounded-lg bg-blue-50 py-2
+                         font-semibold text-blue-700
+                         hover:bg-blue-600 hover:text-white
+                         transition-all duration-300"
             >
-              {showPassword ? (
-  <EyeSlashIcon className="h-5 w-5" />
-) : (
-  <EyeIcon className="h-5 w-5" />
-)}
+              ثبت نام
             </button>
-          </div>
+          </form>
 
-          <Button className="w-full text-base rounded-xl">
-            ثبت نام
-          </Button>
-
-          <p className="text-sm text-center text-muted-foreground">
-            قبلاً حساب دارید؟{" "}
-            <a href="/login" className="text-primary hover:underline">
-              وارد شوید
+          {/* Login link */}
+          <p className="mt-6 text-center text-sm text-gray-600">
+            قبلاً حساب دارید؟
+            <a
+              href="/login"
+              className="text-blue-600 font-medium mr-1 hover:underline"
+            >
+              ورود
             </a>
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Left: Image */}
+      <div
+        className="hidden lg:block bg-blue-50 bg-no-repeat bg-center bg-cover"
+        style={{
+          backgroundImage:
+            "url('https://img.freepik.com/free-vector/sign-page-abstract-concept-illustration_335657-2242.jpg?semt=ais_hybrid&w=740&q=80')",
+        }}
+      />
     </div>
   );
-}
+};
+
+export default SignupPage;
