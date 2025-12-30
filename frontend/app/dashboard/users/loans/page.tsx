@@ -1,4 +1,48 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  getMyLoans,
+  approveLoan,
+  rejectLoan,
+} from "@/lib/api";
+
+type LoanStatus = "pending" | "approved" | "returned" | "rejected";
+
+interface Loan {
+  id: number;
+  item: {
+    title: string;
+  };
+  borrower?: {
+    name: string;
+  };
+  start_date: string;
+  end_date: string;
+  status: LoanStatus;
+}
+
 export default function LoansPage() {
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function loadLoans() {
+    try {
+      const data = await getMyLoans();
+      setLoans(data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadLoans();
+  }, []);
+
+  if (loading) {
+    return <p>در حال بارگذاری...</p>;
+  }
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -11,46 +55,24 @@ export default function LoansPage() {
 
       {/* Loans List */}
       <section className="space-y-4">
-        <LoanCard
-          title="دوربین DSLR Canon"
-          borrower="محمد رضایی"
-          startDate="1403/02/10"
-          endDate="1403/02/15"
-          status="pending"
-        />
-
-        <LoanCard
-          title="پلی‌استیشن 5"
-          borrower="علی احمدی"
-          startDate="1403/01/20"
-          endDate="1403/01/25"
-          status="approved"
-        />
-
-        <LoanCard
-          title="هارد اکسترنال 2TB"
-          borrower="—"
-          startDate="1402/12/05"
-          endDate="1402/12/10"
-          status="returned"
-        />
+        {loans.map((loan) => (
+          <LoanCard
+            key={loan.id}
+            loan={loan}
+            onAction={loadLoans}
+          />
+        ))}
       </section>
     </div>
   );
 }
 
 function LoanCard({
-  title,
-  borrower,
-  startDate,
-  endDate,
-  status,
+  loan,
+  onAction,
 }: {
-  title: string;
-  borrower: string;
-  startDate: string;
-  endDate: string;
-  status: "pending" | "approved" | "returned" | "rejected";
+  loan: Loan;
+  onAction: () => void;
 }) {
   const statusMap = {
     pending: {
@@ -71,12 +93,24 @@ function LoanCard({
     },
   };
 
-  const s = statusMap[status];
+  const s = statusMap[loan.status];
+
+  async function handleApprove() {
+    await approveLoan(loan.id);
+    onAction();
+  }
+
+  async function handleReject() {
+    await rejectLoan(loan.id);
+    onAction();
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow p-6 space-y-3">
       <div className="flex justify-between items-start">
-        <h3 className="font-semibold text-lg">{title}</h3>
+        <h3 className="font-semibold text-lg">
+          {loan.item.title}
+        </h3>
         <span
           className={`text-xs px-3 py-1 rounded-full ${s.className}`}
         >
@@ -85,19 +119,29 @@ function LoanCard({
       </div>
 
       <div className="text-sm text-slate-600 space-y-1">
-        <p>امانت‌گیرنده: {borrower}</p>
         <p>
-          بازه امانت: {startDate} تا {endDate}
+          امانت‌گیرنده:{" "}
+          {loan.borrower?.name || "—"}
+        </p>
+        <p>
+          بازه امانت: {loan.start_date} تا{" "}
+          {loan.end_date}
         </p>
       </div>
 
       {/* Actions */}
-      {status === "pending" && (
+      {loan.status === "pending" && (
         <div className="flex gap-2 pt-2">
-          <button className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700">
+          <button
+            onClick={handleApprove}
+            className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700"
+          >
             تأیید
           </button>
-          <button className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700">
+          <button
+            onClick={handleReject}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700"
+          >
             رد
           </button>
         </div>
