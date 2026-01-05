@@ -19,6 +19,7 @@ class Listing extends Model
         'available_from',
         'available_until',
         'status',
+        'view_count',
     ];
 
     protected $casts = [

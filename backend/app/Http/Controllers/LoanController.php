@@ -9,119 +9,156 @@ use Illuminate\Http\Request;
 class LoanController extends Controller
 {
     /**
-     * Display all loans related to the authenticated user
-     * (either as borrower or as item owner/lender).
+     * Loans related to authenticated user
      */
     public function myLoans(Request $request)
     {
         $user = $request->user();
 
         $loans = Loan::with(['listing.item.owner', 'borrower'])
-            ->where('borrower_id', $user->id) // Loans where user is borrower
-            ->orWhereHas('listing.item', function ($query) use ($user) {
-                $query->where('owner_id', $user->id); // Loans for items user owns
+            ->where('borrower_id', $user->id)
+            ->orWhereHas('listing.item', function ($q) use ($user) {
+                $q->where('owner_id', $user->id);
             })
-            ->latest()
+            ->orderBy('request_date', 'desc')
             ->get();
 
         return response()->json($loans);
     }
 
     /**
-     * Create a new loan request (user acts as borrower).
+     * Create loan request
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $data = $request->validate([
             'listing_id' => 'required|exists:listings,id',
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date'   => 'required|date|after:start_date',
         ]);
 
-        // Load listing with item and owner to avoid N+1 queries
-        $listing = Listing::with('item.owner')->findOrFail($validated['listing_id']);
+        $listing = Listing::with('item')->findOrFail($data['listing_id']);
 
-        // 1. Listing must be active to accept new requests
+        // Check if listing is expired
+        if ($listing->available_until && now()->greaterThan($listing->available_until)) {
+            return response()->json([
+                'message' => 'This product is no longer available. The availability period has ended.'
+            ], 422);
+        }
+
+        // Listing must be active
         if ($listing->status !== 'active') {
             return response()->json([
-                'message' => "This listing is not available for new requests (current status: {$listing->status})"
+                'message' => 'Listing is not available'
             ], 422);
         }
 
-        // 2. Prevent user from borrowing their own item
+        // Validate dates are within available range
+        $startDate = \Carbon\Carbon::parse($data['start_date']);
+        $endDate = \Carbon\Carbon::parse($data['end_date']);
+
+        if ($listing->available_from && $startDate->lessThan($listing->available_from)) {
+            return response()->json([
+                'message' => 'Start date must be on or after ' . $listing->available_from->format('Y-m-d')
+            ], 422);
+        }
+
+        if ($listing->available_until && $endDate->greaterThan($listing->available_until)) {
+            return response()->json([
+                'message' => 'End date must be on or before ' . $listing->available_until->format('Y-m-d')
+            ], 422);
+        }
+
+        // Cannot borrow own item
         if ($listing->item->owner_id === $request->user()->id) {
             return response()->json([
-                'message' => 'You cannot request to borrow your own item'
-            ], 422);
+                'message' => 'You cannot borrow your own item'
+            ], 403);
         }
 
-        // 3. Prevent duplicate active requests from the same user
-        $hasActiveRequest = Loan::where('listing_id', $listing->id)
+        // Prevent duplicate active requests
+        $exists = Loan::where('listing_id', $listing->id)
             ->where('borrower_id', $request->user()->id)
             ->whereIn('status', ['requested', 'approved', 'borrowed'])
             ->exists();
 
-        if ($hasActiveRequest) {
+        if ($exists) {
             return response()->json([
-                'message' => 'You already have an active request or ongoing loan for this item'
+                'message' => 'You already have an active request for this listing'
             ], 422);
         }
 
-        // 4. Create the new loan request
-        $loan = $request->user()->loans()->create([
+        $loan = Loan::create([
             'listing_id'   => $listing->id,
-            'start_date'   => $validated['start_date'],
-            'end_date'     => $validated['end_date'],
+            'borrower_id'  => $request->user()->id,
+            'start_date'   => $data['start_date'],
+            'end_date'     => $data['end_date'],
             'status'       => 'requested',
             'request_date' => now(),
         ]);
 
-        return response()->json($loan->load('listing.item'), 201);
+        return response()->json(
+            $loan->load('listing.item'),
+            201
+        );
     }
 
     /**
-     * Approve a loan request (only the item owner can do this).
+     * Approve loan
      */
     public function approve(Request $request, Loan $loan)
     {
-        // Only the owner of the item can approve
         if ($loan->listing->item->owner_id !== $request->user()->id) {
-            return response()->json(['message' => 'Unauthorized: You are not the owner of this item'], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Loan must be in 'requested' state
         if ($loan->status !== 'requested') {
-            return response()->json(['message' => 'This loan request cannot be approved (not in requested state)'], 422);
+            return response()->json(['message' => 'Invalid state'], 422);
         }
 
-        // Approve the loan and pause the listing to prevent new requests
         $loan->update([
-            'status'        => 'approved',
+            'status' => 'approved',
             'approval_date' => now(),
         ]);
 
-        $loan->listing->update(['status' => 'paused']); // Prevent further requests
+        $loan->listing->update(['status' => 'paused']);
 
         return response()->json($loan->load('listing.item', 'borrower'));
     }
 
     /**
-     * Reject a loan request (only the item owner can do this).
+     * Reject loan
      */
     public function reject(Request $request, Loan $loan)
     {
-        // Only the owner of the item can reject
         if ($loan->listing->item->owner_id !== $request->user()->id) {
-            return response()->json(['message' => 'Unauthorized: You are not the owner of this item'], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Loan must be in 'requested' state
         if ($loan->status !== 'requested') {
-            return response()->json(['message' => 'This loan request cannot be rejected (not in requested state)'], 422);
+            return response()->json(['message' => 'Invalid state'], 422);
         }
 
         $loan->update(['status' => 'rejected']);
 
         return response()->json($loan->load('listing.item', 'borrower'));
     }
+
+    public function show(Request $request, Loan $loan)
+    {
+        $user = $request->user();
+
+        // Only borrower or item owner can view
+        if (
+            $loan->borrower_id !== $user->id &&
+            $loan->listing->item->owner_id !== $user->id
+        ) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return response()->json(
+            $loan->load('listing.item.owner', 'borrower')
+        );
+    }
+
 }

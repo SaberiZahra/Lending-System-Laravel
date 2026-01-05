@@ -5,15 +5,26 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class ListingController extends Controller
 {
     /**
      * Display listings of the authenticated user's items.
+     * For admin users, return all listings.
      */
     public function index(Request $request)
     {
-        $listings = $request->user()->items()->with('listings')->get()->pluck('listings')->flatten();
+        $user = $request->user();
+        
+        // If user is admin, return all listings
+        if ($user->role === 1) {
+            $listings = Listing::with(['item.category', 'item.owner'])->get();
+            return response()->json($listings);
+        }
+        
+        // Otherwise, return only user's listings
+        $listings = $user->items()->with('listings')->get()->pluck('listings')->flatten();
         return response()->json($listings);
     }
 
@@ -22,12 +33,80 @@ class ListingController extends Controller
      */
     public function publicIndex()
     {
+        $query = Listing::with(['item.category', 'item.owner'])
+            ->where('status', 'active');
+        
+        // Check if view_count column exists before ordering by it
+        if (Schema::hasColumn('listings', 'view_count')) {
+            $query->orderBy('view_count', 'desc');
+        }
+        
+        $listings = $query->latest()->get();
+
+        return response()->json($listings);
+    }
+
+    /**
+     * Get newest listings (ordered by created_at desc)
+     */
+    public function newest()
+    {
         $listings = Listing::with(['item.category', 'item.owner'])
             ->where('status', 'active')
-            ->latest()
+            ->latest('created_at')
+            ->limit(15)
             ->get();
 
         return response()->json($listings);
+    }
+
+    /**
+     * Get most viewed listings (ordered by view_count desc)
+     */
+    public function mostViewed()
+    {
+        $query = Listing::with(['item.category', 'item.owner'])
+            ->where('status', 'active');
+        
+        // Check if view_count column exists before ordering by it
+        if (Schema::hasColumn('listings', 'view_count')) {
+            $query->orderBy('view_count', 'desc');
+        }
+        
+        $listings = $query->latest('created_at')->limit(15)->get();
+
+        return response()->json($listings);
+    }
+
+    /**
+     * Get most borrowed listings (ordered by loans count)
+     */
+    public function mostBorrowed()
+    {
+        $listings = Listing::with(['item.category', 'item.owner'])
+            ->where('status', 'active')
+            ->withCount('loans')
+            ->orderBy('loans_count', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->limit(15)
+            ->get();
+
+        return response()->json($listings);
+    }
+
+    /**
+     * Display a specific listing for public/guest users.
+     */
+    public function publicShow($id)
+    {
+        // Return listing even if expired, so users can see it
+        $listing = Listing::with(['item.category', 'item.owner'])
+            ->findOrFail($id);
+
+        // Increment view count
+        $listing->increment('view_count');
+
+        return response()->json($listing);
     }
 
     /**

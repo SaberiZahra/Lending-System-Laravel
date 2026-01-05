@@ -9,6 +9,8 @@ class Loan extends Model
 {
     use HasFactory;
 
+    public $timestamps = false; // Disable timestamps since table doesn't have updated_at
+
     protected $fillable = [
         'listing_id',
         'borrower_id',
@@ -21,11 +23,11 @@ class Loan extends Model
     ];
 
     protected $casts = [
-        'request_date' => 'datetime',
+        'request_date'  => 'datetime',
         'approval_date' => 'datetime',
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'return_date' => 'date',
+        'start_date'    => 'date',
+        'end_date'      => 'date',
+        'return_date'   => 'date',
     ];
 
     public function listing()

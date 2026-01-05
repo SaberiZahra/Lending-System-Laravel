@@ -14,13 +14,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       
       {/* سمت چپ: لوگو و اسم سایت */}
       <div className="flex items-center gap-4">
-        {/* لوگو */}
-        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-          LOGO
+        <div className="flex items-center gap-4">
+        <div className="w-32 h-32 relative"> {/* 128px */}
+          <Image
+            src="/slider/logo.png"
+            alt="Logo"
+            fill
+            className="object-contain"
+            priority
+          />
         </div>
+      </div>
         {/* اسم سایت */}
         <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-          نام سایت شما
+         اجاره چی
         </h1>
       </div>
 
@@ -45,7 +52,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
              transition-all duration-300"
 >
   <UserIcon className="w-5 h-5" />
-  <span>ورود / ثبت نام</span>
+  <span>پروفایل</span>
 </Link>
 
       </div>

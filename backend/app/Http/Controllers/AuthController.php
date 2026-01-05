@@ -19,7 +19,9 @@ class AuthController extends Controller
             'full_name' => 'required|string|max:150',
             'username'  => 'required|string|max:100|unique:users,username',
             'email'     => 'required|email|max:150|unique:users,email',
-            'password'  => 'required|string|min:6', // Client sends "password", not "password_hash"
+            'password'  => 'required|string|min:6',
+            'phone'     => 'nullable|string|max:30',
+            'address'   => 'nullable|string',
         ]);
 
         // Create user with hashed password
@@ -28,6 +30,8 @@ class AuthController extends Controller
             'username'     => $validated['username'],
             'email'        => $validated['email'],
             'password_hash'=> Hash::make($validated['password']),
+            'phone'        => $validated['phone'] ?? null,
+            'address'      => $validated['address'] ?? null,
         ]);
 
         // Generate Sanctum token

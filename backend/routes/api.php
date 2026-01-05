@@ -21,66 +21,60 @@ use App\Http\Controllers\CategoryController;
 |
 */
 
-// Simple test route to return the authenticated user (useful for debugging auth)
+/* ========== PUBLIC ROUTES (No authentication required) ========== */
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-/* ========== PUBLIC ROUTES (No authentication required) ========== */
-
+// Authentication
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// NEW: Public endpoints for guests (homepage)
-Route::get('/public/items', [ItemController::class, 'publicIndex']);         // All active items with listings
-Route::get('/public/listings', [ListingController::class, 'publicIndex']);   // All active listings
-Route::get('/public/categories', [CategoryController::class, 'index']);      // All categories (tree or flat)
+// Public endpoints
+Route::get('/public/items', [ItemController::class, 'publicIndex']);
+Route::get('/public/listings', [ListingController::class, 'publicIndex']);
+Route::get('/public/listings/newest', [ListingController::class, 'newest']);
+Route::get('/public/listings/most-viewed', [ListingController::class, 'mostViewed']);
+Route::get('/public/listings/most-borrowed', [ListingController::class, 'mostBorrowed']);
+Route::get('/public/listings/{id}', [ListingController::class, 'publicShow']);
+Route::get('/public/categories', [CategoryController::class, 'index']);
 
+/* ========== PROTECTED ROUTES (Authentication required) ========== */
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Auth
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+
+    // Profile
+    Route::get('/profile', [UserController::class, 'profile']);
+    Route::put('/profile', [UserController::class, 'update']);
+
+    // Items
+    Route::apiResource('items', ItemController::class);
+
+    // Listings
+    Route::apiResource('listings', ListingController::class);
+
+    // Loans
+    Route::get('/my-loans', [LoanController::class, 'myLoans']);
+    Route::post('/loans/{loan}/approve', [LoanController::class, 'approve']);
+    Route::post('/loans/{loan}/reject', [LoanController::class, 'reject']);
+    Route::apiResource('loans', LoanController::class);
+
+    // Messages
+    Route::get('/conversations', [MessageController::class, 'conversations']);
+    Route::get('/messages/{conversation}', [MessageController::class, 'messages']);
+    Route::post('/messages', [MessageController::class, 'send']);
 
     /* ========== ADMIN ROUTES ========== */
     Route::middleware('admin')->group(function () {
         Route::get('/admin/users', [UserController::class, 'index']);
         Route::get('/admin/users/{user}', [UserController::class, 'show']);
-
-        Route::get('/admin/reports', [ReportController::class, 'index']);
-        Route::get('/admin/reports/{report}', [ReportController::class, 'show']);
-        Route::patch('/admin/reports/{report}', [ReportController::class, 'updateStatus']);
+        Route::apiResource('admin/categories', CategoryController::class);
+        // If you have ReportController:
+        // Route::get('/admin/reports', [ReportController::class, 'index']);
+        // Route::get('/admin/reports/{report}', [ReportController::class, 'show']);
+        // Route::patch('/admin/reports/{report}', [ReportController::class, 'updateStatus']);
     });
-
-    /* ========== AUTH ========== */
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me', [AuthController::class, 'me']);
-
-    /* ========== PROFILE ========== */
-    Route::get('/profile', [UserController::class, 'profile']);
-    Route::put('/profile', [UserController::class, 'update']);
-
-    Route::apiResource('items', ItemController::class);
-    Route::apiResource('listings', ListingController::class);
 });
-
-
-    /* ----- Items Resource (RESTful) ----- */
-    // GET    /api/items           → index
-    // POST   /api/items           → store
-    // GET    /api/items/{item}    → show
-    // PUT    /api/items/{item}    → update
-    // DELETE /api/items/{item}    → destroy
-    Route::apiResource('items', ItemController::class);
-
-    /* ----- Listings Resource (RESTful) ----- */
-    Route::apiResource('listings', ListingController::class);
-
-    /* ----- Loans ----- */
-    Route::get('/my-loans', [LoanController::class, 'myLoans']);                    // Get loans where user is borrower or lender
-    Route::post('/loans/{loan}/approve', [LoanController::class, 'approve']);       // Owner approves a loan request
-    Route::post('/loans/{loan}/reject', [LoanController::class, 'reject']);         // Owner rejects a loan request
-
-    // Standard RESTful routes for loans (must be defined AFTER custom routes to avoid conflicts)
-    Route::apiResource('loans', LoanController::class);
-
-    /* ----- Conversations & Messages ----- */
-    Route::get('/conversations', [MessageController::class, 'conversations']);      // Get all conversations for authenticated user
-    Route::get('/messages/{conversation}', [MessageController::class, 'messages']); // Get messages in a specific conversation
-    Route::post('/messages', [MessageController::class, 'send']);                   // Send a new message
