@@ -134,7 +134,7 @@ export default function Header() {
                         {categories.map((category) => (
                           <div key={category.id} className="group">
                             <Link
-                              href={`/categories/${category.id}`}
+                                href={`/listings?category=${category.id}`}
                               className="block px-4 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition font-medium text-sm"
                               onClick={() => setCategoriesOpen(false)}
                             >
